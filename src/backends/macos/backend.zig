@@ -267,7 +267,7 @@ pub const Container = struct {
     pub fn create() BackendError!Container {
         const view = (try getFlippedNSView())
             .msgSend(objc.Object, "alloc", .{})
-            .msgSend(objc.Object, "initWithFrame:", .{AppKit.NSRect.make(0, 0, 1, 1)});
+            .msgSend(objc.Object, "initWithFrame:", .{AppKit.NSRect.make(0, 0, 100, 100)});
         return Container{ .peer = GuiWidget{
             .object = view,
             .data = try lib.internal.lasting_allocator.create(EventUserData),
