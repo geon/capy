@@ -107,30 +107,42 @@ pub fn Events(comptime T: type) type {
             _ = self;
         }
 
+        fn getPeerFrame(self: *const T) AppKit.NSRect {
+            return self.peer.object.getProperty(AppKit.NSRect, "frame");
+        }
+
         pub fn getX(self: *const T) c_int {
-            _ = self;
-            return 0;
+            return @intFromFloat(self.getPeerFrame().origin.x);
         }
 
         pub fn getY(self: *const T) c_int {
-            _ = self;
-            return 0;
+            return @intFromFloat(self.getPeerFrame().origin.y);
         }
 
         pub fn getWidth(self: *const T) u32 {
-            _ = self;
-            return 100;
+            return @intFromFloat(self.getPeerFrame().size.width);
         }
 
         pub fn getHeight(self: *const T) u32 {
-            _ = self;
-            return 100;
+            return @intFromFloat(self.getPeerFrame().size.height);
         }
 
         pub fn getPreferredSize(self: *const T) lib.Size {
             if (@hasDecl(T, "getPreferredSize_impl")) {
                 return self.getPreferredSize_impl();
             }
+
+            const respondsToSelectorSizeThatFits = self.peer.object.msgSend(u8, "respondsToSelector:", .{objc.sel("sizeThatFits:")});
+            if (respondsToSelectorSizeThatFits == 1) {
+                const sizeThatFits = self.peer.object.msgSend(AppKit.CGSize, "sizeThatFits:", .{
+                    AppKit.CGSize{ .width = 0, .height = 0 },
+                });
+                return lib.Size.init(
+                    @floatCast(sizeThatFits.width),
+                    @floatCast(sizeThatFits.height),
+                );
+            }
+
             return lib.Size.init(
                 100,
                 100,
