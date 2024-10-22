@@ -4,6 +4,7 @@ const lib = @import("../../capy.zig");
 const objc = @import("objc");
 const AppKit = @import("AppKit.zig");
 const CapyAppDelegate = @import("CapyAppDelegate.zig");
+const CapyWindowDelegate = @import("CapyWindowDelegate.zig");
 const trait = @import("../../trait.zig");
 
 const nil = objc.Object.fromId(@as(?*anyopaque, null));
@@ -166,12 +167,20 @@ pub const Window = struct {
             .{ rect, style, AppKit.NSBackingStore.Buffered, flag },
         );
 
+        window.setProperty("delegate", try CapyWindowDelegate.makeInstance());
+
         return Window{
             .peer = GuiWidget{
                 .object = window,
                 .data = try lib.internal.lasting_allocator.create(EventUserData),
             },
         };
+    }
+
+    pub fn onResize(peer: objc.Object) void {
+        const frame = peer.getProperty(AppKit.NSRect, "frame");
+        var contentView = peer.getProperty(objc.Object, "contentView");
+        contentView.setProperty("frame", frame);
     }
 
     pub fn resize(self: *Window, width: c_int, height: c_int) void {
