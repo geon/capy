@@ -133,6 +133,10 @@ pub fn RowLayout(peer: Callbacks, widgets: []*Widget) void {
     const spacing: f32 = @floatFromInt(config.spacing);
 
     const totalAvailableWidth: f32 = @max(0, peer.getSize(peer.userdata).width - @as(f32, @floatFromInt((widgets.len -| 1) * config.spacing)));
+    std.debug.print("RowLayout peer.getSize(peer.userdata).width {?} \n", .{peer.getSize(peer.userdata).width});
+    std.debug.print("RowLayout widgets.len {?} \n", .{widgets.len});
+    std.debug.print("RowLayout config.spacing {?} \n", .{config.spacing});
+    std.debug.print("RowLayout totalAvailableWidth {?} \n", .{totalAvailableWidth});
 
     var childWidth = if (expandedCount == 0) 0 else totalAvailableWidth / @as(f32, @floatFromInt(expandedCount));
     for (widgets) |widget| {

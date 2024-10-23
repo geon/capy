@@ -10,7 +10,7 @@ pub fn main() !void {
 
     var window = try capy.Window.init();
 
-    const NUM_BUTTONS = 300;
+    const NUM_BUTTONS = 10;
 
     // This is only used for additional performance
     var labelArena = std.heap.ArenaAllocator.init(capy.internal.scratch_allocator);
