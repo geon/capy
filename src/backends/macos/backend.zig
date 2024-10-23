@@ -193,6 +193,16 @@ pub const Window = struct {
         const frame = peer.getProperty(AppKit.NSRect, "frame");
         var contentView = peer.getProperty(objc.Object, "contentView");
         contentView.setProperty("frame", frame);
+
+        const data = getEventUserData(peer);
+        // if (@hasDecl(T, "onResize")) {
+        //     T.onResize(data, hwnd);
+        // }
+
+        if (data.class.resizeHandler) |handler|
+            handler(@as(u32, @intFromFloat(frame.size.width)), @as(u32, @intFromFloat(frame.size.height)), data.userdata);
+        if (data.user.resizeHandler) |handler|
+            handler(@as(u32, @intFromFloat(frame.size.width)), @as(u32, @intFromFloat(frame.size.height)), data.userdata);
     }
 
     pub fn resize(self: *Window, width: c_int, height: c_int) void {

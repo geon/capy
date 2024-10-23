@@ -44,11 +44,17 @@ const ColumnRowConfig = struct {
 
 /// Arranges items vertically.
 pub fn ColumnLayout(peer: Callbacks, widgets: []*Widget) void {
+    std.debug.print("containers ColumnLayout\n", .{});
+
     const expandedCount = getExpandedCount(widgets);
+    std.debug.print("containers ColumnLayout expandedCount {?}\n", .{expandedCount});
+
     const config = peer.getLayoutConfig(ColumnRowConfig);
     const spacing: f32 = @floatFromInt(config.spacing);
 
     const totalAvailableHeight: f32 = @max(0, peer.getSize(peer.userdata).height - @as(f32, @floatFromInt((widgets.len -| 1) * config.spacing)));
+
+    std.debug.print("containers ColumnLayout totalAvailableHeight {?}\n", .{totalAvailableHeight});
 
     var childHeight = if (expandedCount == 0) 0 else totalAvailableHeight / @as(f32, @floatFromInt(expandedCount));
     for (widgets) |widget| {
@@ -83,6 +89,8 @@ pub fn ColumnLayout(peer: Callbacks, widgets: []*Widget) void {
                 .width = peer.getSize(peer.userdata).width,
                 .height = if (widget.container_expanded) childHeight else @max(0, peer.getSize(peer.userdata).height - childY),
             };
+            std.debug.print("containers ColumnLayout available {?}\n", .{available});
+
             const preferred = widget.getPreferredSize(available);
             const size = blk: {
                 if (widget.container_expanded) {
@@ -147,6 +155,10 @@ pub fn RowLayout(peer: Callbacks, widgets: []*Widget) void {
         const isLastWidget = i == widgets.len - 1;
         if (widget.peer) |widgetPeer| {
             const minimumSize = widget.getPreferredSize(Size.init(1, 1));
+            // std.debug.print("minimumSize {?} \n", .{minimumSize});
+            // std.debug.print("childX {d} \n", .{childX});
+            // std.debug.print("@as(f32, @floatFromInt(peer.getSize(peer.userdata).width -| minimumSize.width)) {d} \n", .{@as(f32, @floatFromInt(peer.getSize(peer.userdata).width -| minimumSize.width))});
+
             if (config.wrapping) {
                 if (childX >= peer.getSize(peer.userdata).width - minimumSize.width) {
                     childX = 0;
@@ -451,11 +463,13 @@ pub const Container = struct {
     }
 
     fn getSize(data: usize) Size {
+        std.debug.print("containers relayout getSize\n", .{});
         const peer = @as(*backend.Container, @ptrFromInt(data));
         return Size{ .width = @floatFromInt(peer.getWidth()), .height = @floatFromInt(peer.getHeight()) };
     }
 
     fn moveResize(data: usize, widget: backend.PeerType, x: u32, y: u32, w: u32, h: u32) void {
+        std.debug.print("containers relayout moveResize\n", .{});
         @as(*backend.Container, @ptrFromInt(data)).move(widget, x, y);
         @as(*backend.Container, @ptrFromInt(data)).resize(widget, w, h);
     }
@@ -469,6 +483,7 @@ pub const Container = struct {
     /// It shouldn't need to be called as all functions that affect a child's position should also
     /// trigger a relayout. If it doesn't please [file an issue](https://github.com/capy-ui/capy/issues).
     pub fn relayout(self: *Container) void {
+        std.debug.print("containers relayout\n", .{});
         if (self.relayouting.load(.seq_cst) == true) return;
         if (self.peer) |peer| {
             self.relayouting.store(true, .seq_cst);
@@ -491,6 +506,7 @@ pub const Container = struct {
                 }
             }
 
+            std.debug.print("containers relayout self.layout\n", .{});
             self.layout(callbacks, tempItems.items);
             self.relayouting.store(false, .seq_cst);
         }
