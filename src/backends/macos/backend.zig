@@ -83,6 +83,8 @@ pub fn Events(comptime T: type) type {
                 }
             }
 
+            std.debug.print("Events setUserData\n", .{});
+
             getEventUserData(self.peer).userdata = @intFromPtr(data);
         }
 
@@ -198,6 +200,8 @@ pub const Window = struct {
         // if (@hasDecl(T, "onResize")) {
         //     T.onResize(data, hwnd);
         // }
+
+        std.debug.print("Window onResize data {?} \n", .{data});
 
         if (data.class.resizeHandler) |handler|
             handler(@as(u32, @intFromFloat(frame.size.width)), @as(u32, @intFromFloat(frame.size.height)), data.userdata);
