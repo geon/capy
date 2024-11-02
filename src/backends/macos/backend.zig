@@ -191,9 +191,9 @@ pub const Window = struct {
         };
     }
 
-    pub fn onResize(peer: objc.Object) void {
-        const frame = peer.getProperty(AppKit.NSRect, "frame");
-        var contentView = peer.getProperty(objc.Object, "contentView");
+    pub fn onResize(peer: GuiWidget) void {
+        const frame = peer.object.getProperty(AppKit.NSRect, "frame");
+        var contentView = peer.object.getProperty(objc.Object, "contentView");
         contentView.setProperty("frame", frame);
 
         const data = getEventUserData(peer);
