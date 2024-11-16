@@ -181,12 +181,13 @@ pub const Window = struct {
             .{ rect, style, AppKit.NSBackingStore.Buffered, flag },
         );
 
-        window.setProperty("delegate", try CapyWindowDelegate.makeInstance());
+        const data = try lib.internal.lasting_allocator.create(EventUserData);
+        window.setProperty("delegate", try CapyWindowDelegate.makeInstance(data));
 
         return Window{
             .peer = GuiWidget{
                 .object = window,
-                .data = try lib.internal.lasting_allocator.create(EventUserData),
+                .data = data,
             },
         };
     }

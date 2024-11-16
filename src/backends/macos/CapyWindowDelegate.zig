@@ -7,6 +7,8 @@ const lib = @import("../../capy.zig");
 
 var class: ?objc.Class = null;
 
+const capyDataPointerIvarName = "capy_data_pointer";
+
 pub fn getObjcClass() objc.Class {
     if (class) |notNull| {
         return notNull;
@@ -14,16 +16,19 @@ pub fn getObjcClass() objc.Class {
         class = objc.allocateClassPair(objc.getClass("NSObject").?, "CapyWindowDelegate").?;
         defer objc.registerClassPair(class.?);
 
+        _ = class.?.addIvar(capyDataPointerIvarName);
+
         _ = class.?.addMethod("windowDidResize:", struct {
             fn a(self: objc.c.id, sel: objc.c.SEL, notification: objc.c.id) callconv(.C) void {
-                _ = self;
                 _ = sel;
                 const window = objc.Object.fromId(notification).msgSend(objc.Object, "object", .{});
-                // WRONG! .data needs to be passed on from the data stored with the window. That's the whole point.
-                // I don't know how to without closures.
+
+                // Probably all kinds of wrong.
+                var data: *backend.EventUserData = undefined;
+                _ = objc.c.object_getInstanceVariable(self, capyDataPointerIvarName, @ptrCast(&data));
                 backend.Window.onResize(backend.GuiWidget{
                     .object = window,
-                    .data = lib.internal.scratch_allocator.create(backend.EventUserData) catch std.debug.panic("Please fix.", .{}),
+                    .data = data,
                 });
             }
         }.a) catch unreachable;
@@ -32,9 +37,13 @@ pub fn getObjcClass() objc.Class {
     }
 }
 
-pub fn makeInstance() !objc.Object {
+pub fn makeInstance(data: *backend.EventUserData) !objc.Object {
     const delegate = getObjcClass().msgSend(objc.Object, "alloc", .{})
         .msgSend(objc.Object, "init", .{});
+    // Probably all kinds of wrong.
+    var ivarData: **backend.EventUserData = undefined;
+    _ = objc.c.object_getInstanceVariable(delegate.value, capyDataPointerIvarName, @ptrCast(&ivarData));
+    ivarData.* = data;
     return delegate;
 }
 
